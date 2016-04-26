@@ -1,5 +1,7 @@
+
 import play.api._
-import play.api.i18n._
+import play.api.ApplicationLoader.Context
+
 import play.api.inject._
 
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -15,23 +17,20 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 
 /**
- *
+ * Run Play components.
  */
 class MyComponents(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
-    with I18nComponents
     with AhcWSComponents {
+
+  private val logger = org.slf4j.LoggerFactory.getLogger("application")
 
   override lazy val injector =  {
     new SimpleInjector(NewInstanceInjector) +
       router +
-      cookieSigner +
-      csrfTokenSigner +
-      httpConfiguration +
-      tempFileCreator +
       global +
-      wsApi +
-      messagesApi
+      httpConfiguration +
+      wsApi
   }
 
   /**
@@ -40,6 +39,7 @@ class MyComponents(context: ApplicationLoader.Context)
   val router = Router.from {
 
     case GET(p"/") => Action {
+      logger.error("Rendering index page")
       Ok("This is the index page.  Try /hello/world for dynamic content")
     }
 
@@ -58,5 +58,16 @@ class MyComponents(context: ApplicationLoader.Context)
       }
     }
 
+    case GET(p"/play") => Action.async {
+      wsClient.url("https://playframework.com").get().map { response =>
+        val body = response.body
+        Ok(body)
+      }
+    }
+
   }
+}
+
+class MyAppLoader extends ApplicationLoader {
+  def load(context: Context) = new MyComponents(context).application
 }
