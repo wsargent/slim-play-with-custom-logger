@@ -1,4 +1,4 @@
-name := """simplest-possible-play"""
+name := """slim-play-with-custom-logger"""
 
 version := "1.0-SNAPSHOT"
 
